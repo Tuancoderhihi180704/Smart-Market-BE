@@ -13,6 +13,7 @@ import { OrderDetailsModule } from 'src/modules/order_details/order_details.modu
 import { NotificationsModule } from 'src/modules/notifications/notifications.module';
 import { InventoryModule } from 'src/modules/inventory/inventory.module';
 import { AiRecommemdationsModule } from 'src/modules/ai_recommemdations/ai_recommemdations.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 @Module({
   imports: [
@@ -34,6 +35,7 @@ import { AiRecommemdationsModule } from 'src/modules/ai_recommemdations/ai_recom
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

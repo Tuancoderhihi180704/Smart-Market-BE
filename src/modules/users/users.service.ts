@@ -5,7 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { User } from 'src/modules/users/schemas/user.schema';
 import { Model } from 'mongoose';
 import { hashPasswordHelper } from 'src/helpers/util';
-
+import mongoose from 'mongoose';
 import aqp from 'api-query-params';
 @Injectable()
 export class UsersService {
@@ -60,12 +60,24 @@ export class UsersService {
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
-
-  update(id: number, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  
+  async findByEmail (email : string){
+    return await this.userModel.findOne({email})
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} user`;
+  async  update( updateUserDto: UpdateUserDto) {
+    return await this.userModel.updateOne(
+      {_id : updateUserDto._id },
+      { ...updateUserDto });
+  }
+
+  async remove(_id: string) {
+    if(mongoose.isValidObjectId(_id)){
+      return this.userModel.deleteOne({_id})
+    }
+    else{
+      throw new BadRequestException("Id Valid MongoDB")
+    }
+    return `This action removes a #${_id} user`;
   }
 }

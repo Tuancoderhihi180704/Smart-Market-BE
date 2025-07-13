@@ -24,7 +24,7 @@ export class User {
   @Prop({ default: 'user' }) // 'admin' hoặc 'user'
   role: string;
 
-  @Prop({ default: true })
+  @Prop({ default: false })
   active: boolean;
 }
 
