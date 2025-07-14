@@ -4,6 +4,9 @@ import { AuthController } from './auth.controller';
 import { UsersModule } from 'src/modules/users/users.module';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
+import { PassportModule } from '@nestjs/passport';
+import { LocalStrategy } from 'src/auth/passport/local.strategy';
+import { JwtStrategy } from 'src/auth/passport/jwt.strategy';
 
 @Module({
   imports: [
@@ -17,9 +20,12 @@ import { ConfigService } from '@nestjs/config';
         },
       }),
       inject: [ConfigService],
+      
     }),
+    PassportModule,
   ],
+ 
   controllers: [AuthController],
-  providers: [AuthService],
+  providers: [AuthService,LocalStrategy,JwtStrategy],
 })
 export class AuthModule {}
