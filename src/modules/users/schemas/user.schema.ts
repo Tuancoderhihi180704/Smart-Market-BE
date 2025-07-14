@@ -23,9 +23,15 @@ export class User {
 
   @Prop({ default: 'user' }) // 'admin' hoặc 'user'
   role: string;
-
+  
   @Prop({ default: false })
   active: boolean;
+
+  @Prop()
+  codeID:string;
+
+  @Prop()
+  codeExpired : Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

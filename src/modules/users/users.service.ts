@@ -7,77 +7,111 @@ import { Model } from 'mongoose';
 import { hashPasswordHelper } from 'src/helpers/util';
 import mongoose from 'mongoose';
 import aqp from 'api-query-params';
+import { CreateAuthDto } from 'src/auth/dto/create-auth.dto';
+import { v4 as uuidv4 } from 'uuid';
+import * as dayjs from 'dayjs'; 
 @Injectable()
 export class UsersService {
   constructor(
-    @InjectModel(User.name) 
+    @InjectModel(User.name)
     private userModel: Model<User>,
-    ) {}
-  
-  isEmailExits = async(email :string) =>{
-    const user = await this.userModel.exists({email});
-    if(user) return true;
+  ) {}
+
+  isEmailExits = async (email: string) => {
+    const user = await this.userModel.exists({ email });
+    if (user) return true;
     return false;
-  }
+  };
 
   async create(createUserDto: CreateUserDto) {
-    const {username,password,email,full_name,phone} = createUserDto;
-    //check email 
-    const isExits = await this.isEmailExits(email)
-    if(isExits === true){
-      throw new BadRequestException(`Email đã tồn tại : ${email} . Vui lòng nhập email khác `)
+    const { username, password, email, full_name, phone } = createUserDto;
+    //check email
+    const isExits = await this.isEmailExits(email);
+    if (isExits === true) {
+      throw new BadRequestException(
+        `Email đã tồn tại : ${email} . Vui lòng nhập email khác `,
+      );
     }
     const hashPassword = await hashPasswordHelper(password);
     const user = await this.userModel.create({
-      username,password : hashPassword ,email,full_name,phone
-    })
+      username,
+      password: hashPassword,
+      email,
+      full_name,
+      phone,
+    });
     return {
-      _id : user._id
-    }
+      _id: user._id,
+    };
   }
 
-  async findAll(query : string,current : number,pageSize : number) {
-    const {filter,sort} = aqp(query);
+  async findAll(query: string, current: number, pageSize: number) {
+    const { filter, sort } = aqp(query);
     if (filter.current) delete filter.current;
     if (filter.pageSize) delete filter.pageSize;
 
-    if(!current) current =1;
-    if(!pageSize) current=10;
-    
+    if (!current) current = 1;
+    if (!pageSize) current = 10;
+
     const totalItems = (await this.userModel.find(filter)).length;
     const totalPages = Math.ceil(totalItems / pageSize);
     const skip = (current - 1) * pageSize;
 
-
     const result = await this.userModel
-    .find(filter)
-    .limit(pageSize)
-    .skip(skip)
-    .sort(sort as any)
-    return {result,totalPages};
+      .find(filter)
+      .limit(pageSize)
+      .skip(skip)
+      .sort(sort as any);
+    return { result, totalPages };
   }
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
   }
-  
-  async findByEmail (email : string){
-    return await this.userModel.findOne({email})
+
+  async findByEmail(email: string) {
+    return await this.userModel.findOne({ email });
   }
 
-  async  update( updateUserDto: UpdateUserDto) {
+  async update(updateUserDto: UpdateUserDto) {
     return await this.userModel.updateOne(
-      {_id : updateUserDto._id },
-      { ...updateUserDto });
+      { _id: updateUserDto._id },
+      { ...updateUserDto },
+    );
   }
 
   async remove(_id: string) {
-    if(mongoose.isValidObjectId(_id)){
-      return this.userModel.deleteOne({_id})
-    }
-    else{
-      throw new BadRequestException("Id Valid MongoDB")
+    if (mongoose.isValidObjectId(_id)) {
+      return this.userModel.deleteOne({ _id });
+    } else {
+      throw new BadRequestException('Id Valid MongoDB');
     }
     return `This action removes a #${_id} user`;
+  }
+  async handleRegister(registerDto: CreateAuthDto) {
+    const { full_name, username, password, email } = registerDto;
+
+    const isEmailExists = await this.isEmailExits(email);
+    if (isEmailExists) {
+      throw new BadRequestException(
+        `Email đã tồn tại: ${email}. Vui lòng nhập email khác.`,
+      );
+    }
+
+    const hashedPassword = await hashPasswordHelper(password);
+
+    const user = await this.userModel.create({
+      full_name,
+      username,
+      email,
+      password: hashedPassword,
+      isActive : false,
+      codeID: uuidv4(),
+      codeExpired : dayjs().add(5,'minutes'),
+    });
+
+    return {
+      _id: user._id,
+    };
   }
 }

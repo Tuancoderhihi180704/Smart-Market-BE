@@ -14,6 +14,8 @@ import { NotificationsModule } from 'src/modules/notifications/notifications.mod
 import { InventoryModule } from 'src/modules/inventory/inventory.module';
 import { AiRecommemdationsModule } from 'src/modules/ai_recommemdations/ai_recommemdations.module';
 import { AuthModule } from 'src/auth/auth.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtAuthGuard } from 'src/auth/passport/jwt-auth.guard';
 
 @Module({
   imports: [
@@ -36,8 +38,14 @@ import { AuthModule } from 'src/auth/auth.module';
       inject: [ConfigService],
     }),
     AuthModule,
+     
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+  },
+  ],
 })
 export class AppModule {}
